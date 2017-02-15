@@ -1,11 +1,8 @@
-from keras.models import Sequential
-from keras.layers import Dense
-import numpy as np
 import json
 from collections import Counter
 
 # open data file and parse
-dataFileR = open('./data/data.json', 'r')
+dataFileR = open('./data/data_filename.json', 'r')
 datasetJSON = dataFileR.read()
 dataset =  json.loads(datasetJSON)
 dataFileR.close()
