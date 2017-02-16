@@ -4,7 +4,7 @@ import csv
 import re
 import pickle
 import numpy as np
-
+from collections import defaultdict
 
 class WordTable:
 
@@ -39,8 +39,9 @@ class WordTable:
 						self.word2idx[lc] = idx
 
 
-		self.vocab_size = len(self.idx2word)
+		csvdata.close()
 
+		self.vocab_size = len(self.idx2word)
 
 		if serialize:
 			fd = open('./data/idx2word', 'w')
@@ -50,6 +51,21 @@ class WordTable:
 			fd = open('./data/word2idx', 'w')
 			pickle.dump(self.word2idx, fd)
 			fd.close()
+
+	def top_answers(self, processed_data_file, max_classes=1000):
+		answers = defaultdict(int)
+
+		with open(processed_data_file, 'rb') as csvdata:
+			data = csv.reader(csvdata, delimiter='~')
+			for (_, _, answer) in data:				
+				answers[answer.lower()] += 1
+
+
+		csvdata.close()
+
+		sorted_answers = sorted(answers, key=answers.get, reverse=True)
+
+		return sorted_answers[0:max_classes]
 
 
 	def load_dictionary(self):
