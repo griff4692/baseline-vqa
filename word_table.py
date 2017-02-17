@@ -19,7 +19,7 @@ class WordTable:
 
 		try:
 			os.path.isfile('./data/idx2word')
-			os.path.isfile('.data/word2idx')
+			os.path.isfile('./data/word2idx')
 			self.load_dictionary()
 		except IOError:
 			self.generate_dictionarys(processed_data_file)
@@ -69,22 +69,32 @@ class WordTable:
 		csvdata.close()
 
 		sorted_answers = sorted(answers, key=answers.get, reverse=True)
+		self.labels = sorted_answers[0:max_classes]
 
-		return sorted_answers[0:max_classes]
+		self.labels2Idx = {}
+
+		for i in range(len(self.labels)):
+			self.labels2Idx[self.labels[i]] = i
+
+		return self.labels2Idx
 
 
 	def load_dictionary(self):
 		fd = open('./data/idx2word', 'r')
 		self.idx2Word = pickle.load(fd)
+		self.vocab_size = len(self.idx2Word)
 		fd.close()
 		fd = open('./data/word2idx', 'r')
 		self.word2Idx = pickle.load(fd)
 		fd.close()
 
+	def vocabSize(self):
+		return len(self.idx2Word)
+
 	def getIdx(self, word):
 		word = word.lower()
-		if word in self.word2idx:
-			return self.word2idx[word]
+		if word in self.word2Idx:
+			return self.word2Idx[word]
 		else:
 			return -1
 
