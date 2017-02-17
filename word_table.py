@@ -9,17 +9,22 @@ from collections import defaultdict
 class WordTable:
 
 	def __init__(self):
+		default_data_path = get_default_data_path()
 		# relies on having csv parsed file
 		try:
-			default_data_path = get_default_data_path()
 			os.path.isfile(default_data_path)
 			processed_data_file = get_default_processed_data_path()
 		except IOError:
 			processed_data_file = process_json()
 
-		self.generate_dictionary(processed_data_file, False)
+		try:
+			os.path.isfile('./data/idx2word')
+			os.path.isfile('.data/word2idx')
+			self.load_dictionary()
+		except IOError:
+			self.generate_dictionarys(processed_data_file)
 
-	def generate_dictionary(self, processed_data_file, serialize=False):
+	def generate_dictionarys(self, processed_data_file, serialize=True):
 		# word2idx dictionary
 		self.word2idx = {}
 
@@ -70,10 +75,10 @@ class WordTable:
 
 	def load_dictionary(self):
 		fd = open('./data/idx2word', 'r')
-		idx2Word = pickle.load(fd)
+		self.idx2Word = pickle.load(fd)
 		fd.close()
 		fd = open('./data/word2idx', 'r')
-		word2Idx = pickle.load(fd)
+		self.word2Idx = pickle.load(fd)
 		fd.close()
 
 	def getIdx(self, word):
