@@ -11,7 +11,7 @@ from keras.utils import np_utils
 
 wt = w_t.WordTable()
 wt.load_dictionary()
-wt.top_answers('data/data_processed_val.csv')
+wt.top_answers('data_processed_val.csv')
 
 top_words = len(wt.word2Idx)+1
 import csv
@@ -21,7 +21,7 @@ X = []
 Y = []
 #mapping = {}
 total = 0
-with open('data/data_processed.csv', 'rb') as csvfile:
+with open('data_processed.csv', 'rb') as csvfile:
     dp = csv.reader(csvfile, delimiter='~')
     for row in dp:
         ques = row[1]
@@ -44,7 +44,7 @@ Y_data = np_utils.to_categorical(Y)
 X = []
 Y = []
 
-with open('data/data_processed_val.csv', 'rb') as csvfile:
+with open('data_processed_val.csv', 'rb') as csvfile:
     dp = csv.reader(csvfile, delimiter='~')
     for row in dp:
         ques = row[1]
@@ -65,10 +65,10 @@ X_test = np.array(X)
 Y_test = np_utils.to_categorical(Y)
     
 # create the model
-embedding_vecor_length = 512
+embedding_vecor_length = 300
 model = Sequential()
 model.add(Embedding(top_words, embedding_vecor_length, input_length=ques_maxlen))
-model.add(LSTM(300, dropout_W = 0.2, dropout_U = 0.2))
+model.add(LSTM(512, dropout_W = 0.2, dropout_U = 0.2))
 model.add(Dense(Y_data.shape[1], activation='softmax'))
 model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
 print(model.summary())
