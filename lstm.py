@@ -8,6 +8,7 @@ from keras.callbacks import ModelCheckpoint
 import json
 import word_table as w_t
 from keras.utils import np_utils
+from error_analysis import serialize_errors
 
 wt = w_t.WordTable()
 wt.load_dictionary()
@@ -77,3 +78,7 @@ model.fit(X_data, Y_data, nb_epoch=10, batch_size = 64)
 # Final evaluation of the model
 scores, acc = model.evaluate(X_test, Y_test, verbose=1)
 print acc
+
+# generates errors by predicting on test set
+predictions = model.predict(X_test)
+serialize_errors(X_test, predictions, Y_test, 'lstm', wt)
