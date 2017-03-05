@@ -12,7 +12,7 @@ import word_table as w_t
 from keras.utils import np_utils
 from error_analysis import serialize_errors
 
-(X_train, y_train), (X_test, y_test) = imdb.load_data(path="imdb_full.pkl",
+(X_train, y_train), (_, _) = imdb.load_data(path="imdb_full.pkl",
                                                       nb_words=None,
                                                       skip_top=0,
                                                       maxlen=None,
@@ -22,12 +22,10 @@ from error_analysis import serialize_errors
                                                       index_from=3)
 
 X_train = X_train
-X_test = X_test
 
 flatten = lambda l: [item for sublist in l for item in sublist]
 
 X_train_cont = flatten(X_train)
-X_test_cont = flatten(X_test)
 
 Xdata = []
 Ydata = []
@@ -36,17 +34,6 @@ for i in range(len(X_train_cont) - ngram):
     Xdata.append(X_train_cont[i:i+ngram])
     Ydata.append(X_train_cont[i+ngram])
     
-Xtest = []
-Ytest = []
-
-for i in range(len(X_test_cont) - ngram):
-    Xtest.append(X_test_cont[i:i+ngram])
-    Ytest.append(X_test_cont[i+ngram])
-    
-Xtest = np.array(Xtest)
-Ytest = np_utils.to_categorical(Ytest)
-top_words = Ytest.shape[1]
-
 ngram = 4
 embedding_vecor_length = 64
 model = Sequential()
@@ -67,6 +54,5 @@ def generate_data():
             print i*samples,(i+1)*samples
             yield xdata, ydata
 
-model.fit_generator(generate_data(), samples_per_epoch = len(Xdata), nb_epoch=10, verbose=2)
+model.fit_generator(generate_data(), samples_per_epoch = len(Xdata) - samples, nb_epoch=10, verbose=2)
 model.save("imdb_lstm.h5")
-# Finding accuracy
