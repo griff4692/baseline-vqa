@@ -33,7 +33,8 @@ Ydata = []
 for i in range(len(X_train_cont) - ngram):
     Xdata.append(X_train_cont[i:i+ngram])
     Ydata.append(X_train_cont[i+ngram])
-    
+
+top_words = np.max(np.array(Ydata));
 ngram = 4
 embedding_vecor_length = 64
 model = Sequential()
@@ -44,7 +45,7 @@ model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accur
 print(model.summary())
 
 
-samples = 10000
+samples = 2000
 
 def generate_data():
     while 1:
@@ -54,5 +55,5 @@ def generate_data():
             print i*samples,(i+1)*samples
             yield xdata, ydata
 
-model.fit_generator(generate_data(), samples_per_epoch = len(Xdata) - samples, nb_epoch=10, verbose=2)
+model.fit_generator(generate_data(), samples_per_epoch = len(Xdata) - samples, nb_epoch=5, verbose=2)
 model.save("imdb_lstm.h5")
