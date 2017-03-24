@@ -27,7 +27,7 @@ total = 0
 Xtrain_cont = [] 
 Xtest_cont = []
 ngram = 4
-    
+
 
 with open('data_processed.csv', 'rb') as csvfile:
     dp = csv.reader(csvfile, delimiter='~')
@@ -116,7 +116,6 @@ for i in range(len(Ytest)):
 
 # prob = np.sum(np.multiply(Ytest, predictions), 1)
 
-
 # entropy = np.sum(np.multiply(np.log2(prob), prob))
 print "Entropy"
 print entropy
@@ -124,6 +123,4 @@ perplexity = (1.0/2**entropy)
 print "Perplexity Final:"
 print perplexity
 # serialize_errors(X_test, predictions, Y_test, 'lstm', wt)
-
-
 

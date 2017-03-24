@@ -2,12 +2,12 @@ import json
 from collections import Counter
 
 csv_delimiter = '~'
-default_data_path = './data/data_filename.json'
+default_data_path = './data_json/val2014.json'
 def get_default_data_path():
 	return default_data_path
 
 def get_default_processed_data_path():
-	return generate_processed_path(default_data_path)
+	return "./data_json/train2014.csv"
 
 def generate_processed_path(data_filename):
 	data_dir = data_filename[0:find_last_idx('/', data_filename) + 1]
