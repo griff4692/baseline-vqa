@@ -13,13 +13,13 @@ class FeatureLearner:
 		self.rep_dims = int(args.rep_dims)
 		self.batch_size = int(args.batch_size)
 
-		embedding_matrix = generate_embedding_matrix(self.wt, args.embedding_dir, self.glove_embed_size)
+		self.embedding_matrix = generate_embedding_matrix(self.wt, args.embedding_dir, self.glove_embed_size)
 
 		self.embedding = Embedding(
 			name='embedded_question',
-			input_dim=self.wt.vocabSize(),
+			input_dim=len(self.embedding_matrix),
 			output_dim=self.glove_embed_size,
-			weights=[embedding_matrix],
+			weights=[self.embedding_matrix],
 			batch_input_shape=(self.batch_size, None),
 			input_length=None,
 			trainable=False,

@@ -104,7 +104,7 @@ class WordTable:
 	def getIdx(self, word):
 		word = word.lower()
 		if word not in self.word2Idx:
-			self.add_word(word)
+			return self.vocabSize()
 
 		return self.word2Idx[word]
 
@@ -125,8 +125,7 @@ class WordTable:
 		words = re.split(r'[^\w]+', str)
 		res = []
 		for word in words:
-			if word in self.word2Idx:
-				res.append(self.word2Idx[word])
+			res.append(self.getIdx(word))
 		return res
 
 

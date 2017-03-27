@@ -1,5 +1,6 @@
 import os
 import numpy as np
+import pickle
 
 # maps words to their embeddings
 def generate_embedding_idx(embedding_dir, dim):
@@ -18,8 +19,29 @@ def generate_embedding_idx(embedding_dir, dim):
 
 	return embedding_idx
 
+def serialize_ans_embedding_matrix(classDict, embedding_dir, dim):
+	embedding_matrix = np.zeros([len(classDict), dim])
+	embedding_idx = generate_embedding_idx(embedding_dir, dim)
+
+	insert_idx = 0
+
+	for word in classDict:
+		embedding_vector = embedding_idx.get(word)
+		if embedding_vector is not None:
+			v_sq = np.square(embedding_vector)
+			summed = np.sum(v_sq)
+			summed_norm = np.sqrt(summed)
+			embedding_matrix[insert_idx] = embedding_vector/np.sum(summed_norm)
+			insert_idx += 1
+
+	non_null_mat = embedding_matrix[:insert_idx,:]
+
+	fd = open('./data/top_answer_embeddings', 'w')
+	pickle.dump(non_null_mat, fd)
+	fd.close()
+
 def generate_embedding_matrix(wt, embedding_dir, dim):
-	embedding_matrix = np.zeros([wt.vocabSize(), dim])
+	embedding_matrix = np.zeros([wt.vocabSize() + 1, dim])
 	embedding_idx = generate_embedding_idx(embedding_dir, dim)
 
 	for i in range(wt.vocabSize()):
@@ -44,5 +66,6 @@ def lossrender(args, iteration, metrics):
 		string += "%s=%f\t" % (args.METRICS[i - 1], metrics[i])
 
 	print(string)
+
 
 	

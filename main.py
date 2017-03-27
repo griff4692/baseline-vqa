@@ -3,6 +3,7 @@
 # Will change that to make it in correspondenc with TF
 import numpy as np
 import argparse
+import os
 
 from keras.preprocessing import image
 from keras.layers import Dense, Dropout, Activation, Flatten, Input, merge
@@ -13,10 +14,11 @@ from keras import backend as K
 from keras.preprocessing.sequence import pad_sequences
 
 from feature_learner import FeatureLearner
-from utils import generate_embedding_matrix, argrender, lossrender
+from objectives import my_hinge
+from utils import generate_embedding_matrix, argrender, lossrender, serialize_ans_embedding_matrix
 import word_table
 
-def train(model, args):
+def train(model, embedding_matrix, args):
     for epoch in xrange(args.epochs):
         fd = open(args.data_path,'r')
 
@@ -36,10 +38,21 @@ def train(model, args):
             img_file = args.image_dir + img_file
             
             answer = answer[:-1]
-            if(answer not in args.ClassDict):
-                continue
 
-            ans_vec = np_utils.to_categorical(args.ClassDict[answer], args.max_classes)
+            if args.model_name == 'baseline_classifier':
+                if(answer not in args.ClassDict):
+                    continue
+                ans_vec = np_utils.to_categorical(args.ClassDict[answer], args.max_classes)
+            elif args.model_name == 'zsl':
+                idx = args.wt.getIdx(answer)
+                embedding = embedding_matrix[idx]
+                if np.sum(embedding) == 0.0:
+                    continue
+
+                ans_vec = np.expand_dims(embedding, axis=0)
+            else:
+                raise Exception('Model name ' + args.model_name + ' is unrecognized.')
+
             labels.append(ans_vec)
             
             img = image.load_img(img_file, target_size=(args.img_dims[0], args.img_dims[1]))
@@ -86,6 +99,8 @@ def build(args):
     # look up embeddings for question and summarize it
     encoded_question = feature_learner.embed(question)
     question_summary = feature_learner.summarize(encoded_question)
+
+    embedding_matrix = feature_learner.embedding_matrix
     
     # image features from pre-trained model
     img_features = feature_learner.vgg_features(image)
@@ -99,13 +114,13 @@ def build(args):
     else:
         raise Exception('No other models available right now. Sorry!')
 
-    return Model(input=[question, image], output=answer)
+    return Model(input=[question, image], output=answer), embedding_matrix
 
 def main():
     parser = argparse.ArgumentParser(description='Multimodal VQA Model')
 
     # model name
-    parser.add_argument('--model_name', default='baseline_classifier', help='Model to run')
+    parser.add_argument('--model_name', default='baseline_classifier', help='Model to run.  baseline_classifier or zsl.')
 
     # data params
     parser.add_argument('--image_dir', default='./data/training/')
@@ -135,19 +150,23 @@ def main():
 
     args.wt = word_table.WordTable()
     args.vocab_size = args.wt.vocabSize()
+
     args.ClassDict = args.wt.top_answers(args.data_path, args.max_classes)
+
+    if not os.path.exists('./data/top_answer_embeddings'):
+        serialize_ans_embedding_matrix(args.ClassDict, args.embedding_dir, args.glove_embed_size)
 
     args.img_dims = (224,224,3)
 
-    model = build(args)
+    model, embedding_matrix = build(args)
 
     optimizer = Adam(lr=args.lr)
 
-    args.METRICS = ['categorical_crossentropy', 'kullback_leibler_divergence', 'cosine_proximity']
+    args.METRICS = ['categorical_crossentropy', 'cosine_proximity']
 
     model.compile(
         optimizer=optimizer,
-        loss=args.loss,
+        loss=my_hinge if args.loss == 'my_hinge' else args.loss,
         metrics=args.METRICS
     )
 
@@ -156,7 +175,7 @@ def main():
         argrender(args)
 
     print("Training model now...\n")
-    train(model, args)
+    train(model, embedding_matrix, args)
 
 if __name__ == '__main__':
     main()
