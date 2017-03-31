@@ -14,11 +14,11 @@ def my_hinge(y_true, y_pred):
 
     # compute similarity
     sim_true_pred = K.batch_dot(y_true_norm, y_pred_norm, axes=-1) # batch_size, 1 
-    sim_true_pred_repeated = K.repeat(sim_true_pred, SIZE_EMBED_MAT) # batch, embed_mat, 1
+    sim_true_pred_repeated = K.repeat(sim_true_pred, SIZE_EMBED_MAT) # batch_size, embed_mat, 1
 
-    y_pred_norm_repeated = K.repeat(y_pred_norm, SIZE_EMBED_MAT) # batch, embed_mat, embed_size
+    y_pred_norm_repeated = K.repeat(y_pred_norm, SIZE_EMBED_MAT) # batch_size, embed_mat, embed_size
 
-    sim_false_pred_repeated = y_pred_norm_repeated * embedding_mat # batch, embed_mat, embed_size
+    sim_false_pred_repeated = y_pred_norm_repeated * embedding_mat # batch_size, embed_mat, embed_size
 
     sim_false_pred_sum = K.sum(sim_false_pred_repeated, keepdims=True, axis=-1)
 

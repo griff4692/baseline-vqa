@@ -1,5 +1,5 @@
 import os
-from preprocess import process_json, get_default_data_path, get_default_processed_data_path
+from preprocess import process_json, get_default_data_paths, get_default_processed_data_paths
 import csv
 import re
 import pickle
@@ -9,20 +9,25 @@ from collections import defaultdict
 class WordTable:
 
 	def __init__(self):
-		default_data_path = get_default_data_path()
+		default_data_path = get_default_data_paths()
 		# relies on having csv parsed file
 		try:
-			os.path.isfile(default_data_path)
-			processed_data_file = get_default_processed_data_path()
+			os.path.isfile(default_data_path['train'])
+			processed_data_files = get_default_processed_data_paths()
 		except IOError:
-			processed_data_file = process_json()
-
+			processed_data_files = process_json()
 		try:
 			os.path.isfile('./data/idx2word')
 			os.path.isfile('./data/word2Idx')
 			self.load_dictionary()
 		except IOError:
-			self.generate_dictionary(processed_data_file)
+			self.generate_dictionary(processed_data_files)
+
+	def add_data(self, data):
+		for (_, question, answer) in data:
+			words = question + ' ' + answer
+			for word in re.split(r'[^\w]+', words):
+				self.add_word(word)
 
 	def generate_dictionary(self, processed_data_file, serialize=True):
 		# word2idx dictionary
@@ -31,16 +36,11 @@ class WordTable:
 		# idx2word array
 		self.idx2Word = []
 
-		with open(processed_data_file, 'rb') as csvdata:
-			data = csv.reader(csvdata, delimiter='~')
-
-			for (_, question, answer) in data:
-				words = question + ' ' + answer
-				for word in re.split(r'[^\w]+', words):
-					self.add_word(word)
-
-
-		csvdata.close()
+		for name in ['train', 'val']:
+			with open(processed_data_file[name], 'rb') as csvdata:
+				data = csv.reader(csvdata, delimiter='~')
+				self.add_data(data)
+			csvdata.close()
 
 		self.vocab_size = len(self.idx2Word)
 

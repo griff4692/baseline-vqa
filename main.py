@@ -6,7 +6,8 @@ import argparse
 import os
 
 from keras.preprocessing import image
-from keras.layers import Dense, Dropout, Activation, Flatten, Input, merge
+from keras.layers import Dense, Dropout, Activation, Flatten, Input, \
+    merge, RepeatVector, Lambda, Permute
 from keras.optimizers import Adam
 from keras.models import Model
 from keras.utils import np_utils
@@ -109,8 +110,17 @@ def build(args):
 
     if args.model_name == 'baseline_classifier':
         answer = Dense(args.max_classes, activation='softmax')(merged_img_q)
+    elif args.model_name == 'hybrid':
+        class_gates = Dense(851, activation='softmax')(merged_img_q) # batch_size, embed_matrix
+        gates_rep = RepeatVector(args.glove_embed_size)(class_gates) # batch_size, embed_size, embed_matrix
+        gates_rep_perm = Permute((2,1))(gates_rep)
+
+        scaled_embed_mat = merge([gates_rep_perm, args.ans_embedding_mat], mode='mul') # batch_size, embed_matrix, embed_size
+
+        answer = Lambda(lambda x: K.sum(x, axis=1))(scaled_embed_mat)
+
     elif args.model_name == 'zsl':
-        answer = Dense(args.glove_embed_size)(merged_img_q) # must be same size as glove embeddings
+        answer = Dense(args.glove_embed_size)(merged_img_q) # (batch_size, embed_size)
     else:
         raise Exception('No other models available right now. Sorry!')
 
@@ -157,6 +167,9 @@ def main():
         serialize_ans_embedding_matrix(args.ClassDict, args.embedding_dir, args.glove_embed_size)
 
     args.img_dims = (224,224,3)
+
+    ans_embedding_mat = np.load('./data/top_answer_embeddings')
+    args.ans_embedding_mat = np.repeat(np.expand_dims(ans_embedding_mat, axis=0), args.batch_size, axis=0)
 
     model, embedding_matrix = build(args)
 

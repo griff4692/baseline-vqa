@@ -44,12 +44,16 @@ def generate_embedding_matrix(wt, embedding_dir, dim):
 	embedding_matrix = np.zeros([wt.vocabSize() + 1, dim])
 	embedding_idx = generate_embedding_idx(embedding_dir, dim)
 
+	not_found = 0
+
 	for i in range(wt.vocabSize()):
 		word = wt.getWord(i)
 		embedding_vector = embedding_idx.get(word)
 		if embedding_vector is not None:
 			# words not found in embedding index will be all-zeros.
 			embedding_matrix[i] = embedding_vector
+		else:
+			not_found += 1
 
 	return embedding_matrix
 

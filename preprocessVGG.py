@@ -13,7 +13,6 @@ import os
 import tensorflow as tf
 import cPickle
 
-
 base_img_model = VGG16(weights='imagenet', include_top=True, input_shape=(224,224,3))
 vgg_features = Model(input=base_img_model.input, output = base_img_model.layers[21].output)
 
